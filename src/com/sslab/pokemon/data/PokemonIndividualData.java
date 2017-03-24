@@ -8,6 +8,7 @@ public class PokemonIndividualData {
     private int speciesID;
     private String nickName;
     private PokemonValueData pokemonValueData;
+
     public PokemonIndividualData(String nickName, int speciesID, int[] valueData) {
         this.nickName = nickName;
         this.speciesID = speciesID;
@@ -21,5 +22,9 @@ public class PokemonIndividualData {
 
     public int getSpeciesID() {
         return speciesID;
+    }
+
+    public int[] getValueData() {
+        return pokemonValueData.getValArray();
     }
 }

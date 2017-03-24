@@ -35,13 +35,16 @@ public class PokeGen {
     private JPanel currentSelectedPanel;
     private ArrayList<JTextField> statFields;
 
+
     Pokedex pokedex;
     HashMap<JPanel, PokemonIndividualData> pokemonMap;
 
     public PokeGen() {
         /* Remember to new ArrayList otherwise there will be pointer error */
         statFields = new ArrayList<>();
+        pokemonMap = new HashMap<>();
         currentSelectedPanel = new JPanel();
+
         /* Add the "stat" labels into statLabels */
         statFields.add(nickNameField);
         statFields.add(hpField);
@@ -50,6 +53,7 @@ public class PokeGen {
         statFields.add(spAtkField);
         statFields.add(spDefField);
         statFields.add(speedField);
+
         /* Use Pokedex to get pokemon species data */
         pokedex = new Pokedex("bin/pokemonData.json");
         for(int i = 0; i <= 800; i++) {
@@ -57,22 +61,22 @@ public class PokeGen {
             speciesComboBox.addItem(name);
         }
 
+
+
         MouseListener handler = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 currentSelectedPanel = (JPanel) e.getComponent();
-                System.out.println("set currentPanel");
-
-                ((JPanel) e.getComponent()).setBorder(BorderFactory.createLoweredBevelBorder());
-                //currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder(1));
+                currentSelectedPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+                loadPokemon(currentSelectedPanel);
             }
 
             @Override
             public void mousePressed(MouseEvent e) { }
             @Override
             public void mouseReleased(MouseEvent e) {
-                currentSelectedPanel = (JPanel) e.getComponent();
-                System.out.println("released currentPanel");
+                currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder());
+
             }
             @Override
             public void mouseEntered(MouseEvent e) { }
@@ -91,32 +95,57 @@ public class PokeGen {
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int[] value = new int[6];
-                value[0] = Integer.parseInt(hpField.getText());
-                value[1] = Integer.parseInt(atkField.getText());
-                value[2] = Integer.parseInt(defField.getText());
-                value[3] = Integer.parseInt(spAtkField.getText());
-                value[4] = Integer.parseInt(spDefField.getText());
-                value[5] = Integer.parseInt(speedField.getText());
-                String nickName = nickNameField.getName();
-                int speciesID = speciesComboBox.getSelectedIndex();
-                PokemonIndividualData individualData = new PokemonIndividualData(nickName, speciesID, value);
-                pokemonMap.put(currentSelectedPanel, individualData);
-                for(int i = 0; i <= 5; i++) {
-                    System.out.println(value[i]);
+                setPokemon(currentSelectedPanel);
+            }
+        });
 
-                }
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                deletePokemon(currentSelectedPanel);
+                loadPokemon(currentSelectedPanel);
             }
         });
 
     }
 
     public void setPokemon(JPanel panel) {
+        int[] value = new int[6];
+        for(int i = 0; i < 6; i++) {
+            value[i] = Integer.parseInt(statFields.get(i+1).getText());
+        }
+        String nickName = nickNameField.getText();
+        int speciesID   = speciesComboBox.getSelectedIndex()+1;
+        PokemonIndividualData individualData = new PokemonIndividualData(nickName, speciesID, value);
+        pokemonMap.put(panel, individualData);
+        ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(speciesID));
+        JLabel label = (JLabel) panel.getComponent(0);
+        label.setIcon(icon);
 
     }
 
     public void loadPokemon(JPanel panel) {
-
+        if(pokemonMap.containsKey(panel)) {
+            PokemonIndividualData individualData = pokemonMap.get(panel);
+            int[] value = individualData.getValueData();
+            speciesComboBox.setSelectedIndex(individualData.getSpeciesID()-1);
+            nickNameField.setText(individualData.getNickName());
+            for(int i = 0; i < 6; i++) {
+                Integer valstr = value[i];
+                statFields.get(i+1).setText(valstr.toString());
+            }
+        } else {
+            for(int i = 0; i < statFields.size(); i++) {
+                statFields.get(i).setText(null);
+            }
+        }
+    }
+    public void deletePokemon(JPanel panel) {
+        if(pokemonMap.containsKey(panel)) {
+            JLabel label = (JLabel) panel.getComponent(0);
+            label.setIcon(null);
+            pokemonMap.remove(panel);
+        }
     }
 
     public static void main(String[] args) {
