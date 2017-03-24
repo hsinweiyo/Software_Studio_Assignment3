@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.sslab.pokemon.data.PokemonSpeciesData;
+import com.sslab.pokemon.data.PokemonValueData;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -40,7 +41,7 @@ public class Pokedex {
     }
     void saveFile(String fileName) throws IOException {
         //TODO sort list before save to file
-
+        Collections.sort(pokemonSpeciesDataList);
         //Create JsonWriter with fileName
         JsonWriter writer = new JsonWriter(new FileWriter(fileName));
         //create a gson object
@@ -52,10 +53,13 @@ public class Pokedex {
 
     }
 
-    public void addNewPokemon(int id,String name, int[] speciesValue)
+    public void addNewPokemon(int id,String name, int[] speciesValue, String[] type)
     {
         //TODO create a new PokemonSpeciesData and add to the datalist
         //your can print out some information if you want
+        PokemonValueData valueData = new PokemonValueData(speciesValue);
+        PokemonSpeciesData speciesData = new PokemonSpeciesData(id, name, valueData, type);
+        pokemonSpeciesDataList.add(speciesData);
 
     }
 

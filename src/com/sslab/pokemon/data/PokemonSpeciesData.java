@@ -4,7 +4,7 @@ package com.sslab.pokemon.data;
  * Created by jerry on 2017/3/1.
  */
 
-public class PokemonSpeciesData// implements Comparable<PokemonSpeciesData>
+public class PokemonSpeciesData implements Comparable<PokemonSpeciesData>
 {
     private int id;
     private String speciesName;
@@ -38,7 +38,10 @@ public class PokemonSpeciesData// implements Comparable<PokemonSpeciesData>
             s+=type[i];
         return s;
     }
-
+    @Override
+    public int compareTo(PokemonSpeciesData o) {
+        return id - o.getId();
+    }
 }
 
 //https://wiki.52poke.com/wiki/种族值
