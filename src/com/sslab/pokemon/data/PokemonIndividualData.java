@@ -3,28 +3,20 @@ package com.sslab.pokemon.data;
 /**
  * Created by jerry on 2017/3/21.
  */
-public class PokemonIndividualData {
+public class PokemonIndividualData extends PokemonSpeciesData
+{
     //TODO create variables and constructor for this class
-    private int speciesID;
     private String nickName;
-    private PokemonValueData pokemonValueData;
+    private int comboIndex;
 
-    public PokemonIndividualData(String nickName, int speciesID, int[] valueData) {
-        this.nickName = nickName;
-        this.speciesID = speciesID;
-        PokemonValueData data = new PokemonValueData(valueData);
-        this.pokemonValueData = data;
+    public PokemonIndividualData(PokemonSpeciesData ps, String nickname, int[] value, int combo) {
+        super (ps.getId(), ps.getSpeciesName(), ps.getSpeciesValue(), ps.getType());
+        this.nickName = nickname;
+        this.setSpeciesValue(value);
+        this.comboIndex = combo;
     }
 
     public String getNickName() {
         return nickName;
-    }
-
-    public int getSpeciesID() {
-        return speciesID;
-    }
-
-    public int[] getValueData() {
-        return pokemonValueData.getValArray();
     }
 }

@@ -31,11 +31,15 @@ public class PokemonSpeciesData implements Comparable<PokemonSpeciesData>
     public PokemonValueData getSpeciesValue() {
         return speciesValue;
     }
-    public String getType()
+    public void setSpeciesValue(int[] value) {
+        PokemonValueData valueData = new PokemonValueData(value);
+        this.speciesValue = valueData;
+    }
+    public String[] getType()
     {
-        String s = "";
+        String[] s = new String[type.length];
         for(int i=0;i<type.length;i++)
-            s+=type[i];
+            s[i] = type[i];
         return s;
     }
     @Override

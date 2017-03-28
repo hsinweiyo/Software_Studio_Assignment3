@@ -63,6 +63,10 @@ public class Pokedex {
 
     }
 
+    public void deletePokemon(int comboIndex) {
+        PokemonSpeciesData speciesData = pokemonSpeciesDataList.get(comboIndex);
+        pokemonSpeciesDataList.remove(speciesData);
+    }
 
 
     public PokemonSpeciesData getPokemonData(int id)

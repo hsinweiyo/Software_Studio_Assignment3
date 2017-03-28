@@ -1,12 +1,17 @@
 package com.sslab.pokemon;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import com.sslab.pokemon.data.PokemonIndividualData;
 import com.sslab.pokemon.data.PokemonSpeciesData;
 import com.sslab.pokemon.sprite.PokemonSprite;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -37,6 +42,7 @@ public class PokeGen {
 
 
     Pokedex pokedex;
+    Pokedex newpokedex;
     HashMap<JPanel, PokemonIndividualData> pokemonMap;
 
     public PokeGen() {
@@ -56,8 +62,10 @@ public class PokeGen {
 
         /* Use Pokedex to get pokemon species data */
         pokedex = new Pokedex("bin/pokemonData.json");
-        for(int i = 0; i <= 800; i++) {
-            String name = i+1 + ": " + pokedex.getPokemonData(i).getSpeciesName();
+        newpokedex = new Pokedex();
+        speciesComboBox.addItem(" ----------------- ");
+        for(int i = 0; i < pokedex.getPokemonSize(); i++) {
+            String name = pokedex.getPokemonData(i).getId() + ": " + pokedex.getPokemonData(i).getSpeciesName();
             speciesComboBox.addItem(name);
         }
 
@@ -96,6 +104,11 @@ public class PokeGen {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setPokemon(currentSelectedPanel);
+                try {
+                    saveFile("morris_new_pokemon.json");
+                } catch (IOException ioexception) {
+                    ioexception.printStackTrace();
+                }
             }
         });
 
@@ -104,6 +117,11 @@ public class PokeGen {
             public void actionPerformed(ActionEvent e) {
                 deletePokemon(currentSelectedPanel);
                 loadPokemon(currentSelectedPanel);
+                try {
+                    saveFile("morris_new_pokemon.json");
+                } catch (IOException ioexception) {
+                    ioexception.printStackTrace();
+                }
             }
         });
 
@@ -115,20 +133,21 @@ public class PokeGen {
             value[i] = Integer.parseInt(statFields.get(i+1).getText());
         }
         String nickName = nickNameField.getText();
-        int speciesID   = speciesComboBox.getSelectedIndex()+1;
-        PokemonIndividualData individualData = new PokemonIndividualData(nickName, speciesID, value);
+        int comboIndex   = speciesComboBox.getSelectedIndex();
+        PokemonSpeciesData speciesData = pokedex.getPokemonData(comboIndex-1);
+        PokemonIndividualData individualData = new PokemonIndividualData (speciesData, nickName, value, comboIndex);
         pokemonMap.put(panel, individualData);
-        ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(speciesID));
+        ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(comboIndex));
         JLabel label = (JLabel) panel.getComponent(0);
         label.setIcon(icon);
-
+        newpokedex.addNewPokemon(individualData.getId(), individualData.getSpeciesName(), value, individualData.getType());
     }
 
     public void loadPokemon(JPanel panel) {
         if(pokemonMap.containsKey(panel)) {
             PokemonIndividualData individualData = pokemonMap.get(panel);
-            int[] value = individualData.getValueData();
-            speciesComboBox.setSelectedIndex(individualData.getSpeciesID()-1);
+            int[] value = individualData.getSpeciesValue().getValArray();
+            speciesComboBox.setSelectedIndex(individualData.getId());
             nickNameField.setText(individualData.getNickName());
             for(int i = 0; i < 6; i++) {
                 Integer valstr = value[i];
@@ -137,6 +156,7 @@ public class PokeGen {
         } else {
             for(int i = 0; i < statFields.size(); i++) {
                 statFields.get(i).setText(null);
+                speciesComboBox.setSelectedIndex(0);
             }
         }
     }
@@ -148,6 +168,21 @@ public class PokeGen {
         }
     }
 
+    public void saveFile(String fileName) throws IOException {
+        //TODO sort list before save to file
+        //Collections.sort(pokemonSpeciesDataList);
+        //Create JsonWriter with fileName
+        JsonWriter writer = new JsonWriter(new FileWriter(fileName));
+        //create a gson object
+        Gson gson = new Gson();
+        //use gson to write object into json file, remember to convert ArrayList back to normal array first
+        gson.toJson(pokemonMap.values().toArray(),PokemonSpeciesData[].class,writer);
+        //close the writer, very important!!!
+        writer.close();
+
+    }
+
+
     public static void main(String[] args) {
         JFrame frame = new JFrame("PokeGen");
         frame.setContentPane(new PokeGen().root);
@@ -155,5 +190,6 @@ public class PokeGen {
         frame.pack();
         frame.setVisible(true);
     }
+
 
 }
