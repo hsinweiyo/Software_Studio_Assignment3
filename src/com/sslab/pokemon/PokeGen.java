@@ -52,7 +52,7 @@ public class PokeGen {
         /* Remember to new parameters otherwise there will be pointer error */
         statFields = new ArrayList<>();
         pokemonMap = new HashMap<>();
-        currentSelectedPanel = new JPanel();
+        currentSelectedPanel = slot0;
 
         /* Add the "stat" labels into statLabels */
         statFields.add(nickNameField);
@@ -80,6 +80,8 @@ public class PokeGen {
         MouseListener handler = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if(!pokemonMap.containsKey(currentSelectedPanel))
+                    clearIcon(currentSelectedPanel);
                 /* set the origin panel's border unclicked */
                 currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder());
                 currentSelectedPanel = (JPanel) e.getComponent();
@@ -110,6 +112,18 @@ public class PokeGen {
         slot6.addMouseListener(handler);
         slot7.addMouseListener(handler);
         slot8.addMouseListener(handler);
+
+        speciesComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                /* set icon whose image is load from original json file */
+                if(speciesComboBox.getSelectedIndex() != 0) {
+                    ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(speciesComboBox.getSelectedIndex()+1));
+                    JLabel label = (JLabel) currentSelectedPanel.getComponent(0);
+                    label.setIcon(icon);
+                }
+            }
+        });
 
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -143,12 +157,7 @@ public class PokeGen {
         editButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-               for(int i = 0; i < statFields.size(); i++) {
-                   /* set the text fields abel to edit */
-                   statFields.get(i).setEditable(true);
-               }
-               /* set the comboBox clickable */
-               speciesComboBox.setEnabled(true);
+                setEditable(true);
             }
         });
     }
@@ -158,8 +167,6 @@ public class PokeGen {
         int[] value = new int[6];
         for(int i = 0; i < 6; i++) {
             value[i] = Integer.parseInt(statFields.get(i+1).getText());
-            /* set the textFields not able to edit */
-            statFields.get(i+1).setEditable(false);
         }
 
         /* get the species we choose */
@@ -174,15 +181,6 @@ public class PokeGen {
 
         /* put the new individual data into the pokeMap */
         pokemonMap.put(panel, individualData);
-
-        /* once save, information are unable to edit */
-        nickNameField.setEditable (false);
-        speciesComboBox.setEnabled(false);
-
-        /* set icon whose image is load from original json file */
-        ImageIcon icon  = new ImageIcon(PokemonSprite.getSprite(comboIndex));
-        JLabel    label = (JLabel) panel.getComponent(0);
-        label.setIcon(icon);
 
         /* add the pokemonData into new json file we want to store */
         newpokedex.addNewPokemon(individualData.getId(), individualData.getSpeciesName(), value, individualData.getType());
@@ -203,15 +201,14 @@ public class PokeGen {
                 Integer valstr = value[i-1];
                 statFields.get(i).setText(valstr.toString());
             }
+            setEditable(false);
         /* if there's no pokemon then initialize all the fields and comboBox */
         } else {
-            speciesComboBox.setEnabled(true);
+            setEditable(true);
             speciesComboBox.setSelectedIndex(0);
-            nickNameField.  setEditable(true);
             nickNameField.  setText(null);
             for(int i = 1; i < statFields.size(); i++) {
                 statFields.get(i).setText("0");
-                statFields.get(i).setEditable(true);
             }
         }
     }
@@ -238,6 +235,29 @@ public class PokeGen {
 
     }
 
+    public void clearIcon(JPanel panel) {
+        JLabel label = (JLabel) panel.getComponent(0);
+        label.setIcon(null);
+    }
+
+    public void setEditable(boolean bool) {
+        if(bool) {
+            nickNameField.setEditable(true);
+            speciesComboBox.setEnabled(true);
+            for (int i = 0; i < statFields.size(); i++) {
+                /* set the textFields not able to edit */
+                statFields.get(i).setEditable(true);
+            }
+        } else {
+        /* once save, information are able to edit */
+            nickNameField.setEditable(false);
+            speciesComboBox.setEnabled(false);
+            for (int i = 0; i < statFields.size(); i++) {
+                /* set the textFields not able to edit */
+                statFields.get(i).setEditable(false);
+            }
+        }
+    }
     public static void main(String[] args) {
         JFrame frame = new JFrame("PokeGen");
         frame.setContentPane(new PokeGen().root);

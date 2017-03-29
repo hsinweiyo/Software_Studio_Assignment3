@@ -5,7 +5,10 @@ package com.sslab.pokemon.data;
  */
 public class PokemonIndividualData extends PokemonSpeciesData
 {
-    //TODO create variables and constructor for this class
+    //=================================//
+    // inherit from PokemonSpeciesData //
+    //=================================//
+    /* add its own nickname and comboBox index */
     private String nickName;
     private int comboIndex;
 
