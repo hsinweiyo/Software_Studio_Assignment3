@@ -11,7 +11,6 @@ import java.awt.event.*;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -30,6 +29,9 @@ public class PokeGen {
     private JPanel slot3;
     private JPanel slot4;
     private JPanel slot5;
+    private JPanel slot6;
+    private JPanel slot7;
+    private JPanel slot8;
     private JTextField nickNameField;
     private JTextField hpField;
     private JTextField atkField;
@@ -37,20 +39,17 @@ public class PokeGen {
     private JTextField spAtkField;
     private JTextField spDefField;
     private JTextField speedField;
-    private JPanel slot6;
-    private JPanel slot7;
-    private JPanel slot8;
+
     private JButton editButton;
     private JPanel currentSelectedPanel;
     private ArrayList<JTextField> statFields;
-
 
     Pokedex pokedex;
     Pokedex newpokedex;
     HashMap<JPanel, PokemonIndividualData> pokemonMap;
 
     public PokeGen() {
-        /* Remember to new ArrayList otherwise there will be pointer error */
+        /* Remember to new parameters otherwise there will be pointer error */
         statFields = new ArrayList<>();
         pokemonMap = new HashMap<>();
         currentSelectedPanel = new JPanel();
@@ -65,29 +64,35 @@ public class PokeGen {
         statFields.add(speedField);
 
         /* Use Pokedex to get pokemon species data */
-        pokedex = new Pokedex("bin/pokemonData.json");
+        pokedex    = new Pokedex("bin/pokemonData.json");
         newpokedex = new Pokedex();
+
+        /* first comboBox has nothing on it */
         speciesComboBox.addItem(" ----------------- ");
+        /* index below contains text which load from pokedex */
         for(int i = 0; i < pokedex.getPokemonSize(); i++) {
             String name = pokedex.getPokemonData(i).getId() + ": " + pokedex.getPokemonData(i).getSpeciesName();
             speciesComboBox.addItem(name);
         }
 
 
-
+        /* create a handler to deal with the mouse action */
         MouseListener handler = new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                /* set the origin panel's border unclicked */
+                currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder());
                 currentSelectedPanel = (JPanel) e.getComponent();
+
+                /* set the new panel's clicked */
                 currentSelectedPanel.setBorder(BorderFactory.createLoweredBevelBorder());
+                /* load the information for the panel */
                 loadPokemon(currentSelectedPanel);
             }
             @Override
             public void mousePressed(MouseEvent e) { }
             @Override
-            public void mouseReleased(MouseEvent e) {
-                currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder());
-            }
+            public void mouseReleased(MouseEvent e) { }
             @Override
             public void mouseEntered(MouseEvent e) { }
             @Override
@@ -95,6 +100,7 @@ public class PokeGen {
 
         };
 
+        /* add listener we jst create to the slots */
         slot0.addMouseListener(handler);
         slot1.addMouseListener(handler);
         slot2.addMouseListener(handler);
@@ -109,6 +115,7 @@ public class PokeGen {
             @Override
             public void actionPerformed(ActionEvent e) {
                 setPokemon(currentSelectedPanel);
+                /* save json file into morris_new_pokemon.json */
                 try {
                     saveFile("morris_new_pokemon.json");
                 } catch (IOException ioexception) {
@@ -120,8 +127,11 @@ public class PokeGen {
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                /* delete pokemon with the key panel */
                 deletePokemon(currentSelectedPanel);
+                /* reload the data information the key panel */
                 loadPokemon(currentSelectedPanel);
+                /* restore the json file to delete the data */
                 try {
                     saveFile("morris_new_pokemon.json");
                 } catch (IOException ioexception) {
@@ -134,57 +144,71 @@ public class PokeGen {
             @Override
             public void actionPerformed(ActionEvent e) {
                for(int i = 0; i < statFields.size(); i++) {
+                   /* set the text fields abel to edit */
                    statFields.get(i).setEditable(true);
                }
+               /* set the comboBox clickable */
                speciesComboBox.setEnabled(true);
             }
         });
     }
 
     public void setPokemon(JPanel panel) {
+        /* save the new valueData into array */
         int[] value = new int[6];
         for(int i = 0; i < 6; i++) {
             value[i] = Integer.parseInt(statFields.get(i+1).getText());
+            /* set the textFields not able to edit */
             statFields.get(i+1).setEditable(false);
         }
 
+        /* get the species we choose */
         int comboIndex   = speciesComboBox.getSelectedIndex();
         String nickName  = nickNameField.getText();
 
-        PokemonSpeciesData speciesData = pokedex.getPokemonData(comboIndex-1);
+        /* get the speciesData from the pokedex */
+        PokemonSpeciesData    speciesData    = pokedex.getPokemonData(comboIndex-1);
 
+        /* create a new individual data with information above */
         PokemonIndividualData individualData = new PokemonIndividualData (speciesData, nickName, value, comboIndex);
+
+        /* put the new individual data into the pokeMap */
         pokemonMap.put(panel, individualData);
 
-        nickNameField.setEditable(false);
+        /* once save, information are unable to edit */
+        nickNameField.setEditable (false);
         speciesComboBox.setEnabled(false);
 
-        ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(comboIndex));
-
-        JLabel label = (JLabel) panel.getComponent(0);
+        /* set icon whose image is load from original json file */
+        ImageIcon icon  = new ImageIcon(PokemonSprite.getSprite(comboIndex));
+        JLabel    label = (JLabel) panel.getComponent(0);
         label.setIcon(icon);
+
+        /* add the pokemonData into new json file we want to store */
         newpokedex.addNewPokemon(individualData.getId(), individualData.getSpeciesName(), value, individualData.getType());
     }
 
     public void loadPokemon(JPanel panel) {
+        /* check if there is pokemon in the panel */
         if(pokemonMap.containsKey(panel)) {
+            /* get individual data from the pokeMap */
             PokemonIndividualData individualData = pokemonMap.get(panel);
+            /* get the value of individual data */
             int[] value = individualData.getSpeciesValue().getValArray();
 
+            /* show the information of the pokemon by setting the fields */
             speciesComboBox.setSelectedIndex(individualData.getComboIndex());
             nickNameField.setText(individualData.getNickName());
-
-
             for(int i = 1; i < statFields.size(); i++) {
                 Integer valstr = value[i-1];
                 statFields.get(i).setText(valstr.toString());
             }
-
+        /* if there's no pokemon then initialize all the fields and comboBox */
         } else {
             speciesComboBox.setEnabled(true);
             speciesComboBox.setSelectedIndex(0);
-            nickNameField.setEditable(true);
-            nickNameField.setText(null);
+            nickNameField.  setEditable(true);
+            nickNameField.  setText(null);
             for(int i = 1; i < statFields.size(); i++) {
                 statFields.get(i).setText("0");
                 statFields.get(i).setEditable(true);
@@ -192,16 +216,17 @@ public class PokeGen {
         }
     }
     public void deletePokemon(JPanel panel) {
+        /* if there is pokemon in the panel we choose remove the individual data from the pokemonMap */
         if(pokemonMap.containsKey(panel)) {
             JLabel label = (JLabel) panel.getComponent(0);
+            /* initialize the image */
             label.setIcon(null);
+            /* delete it from the pokemonMap */
             pokemonMap.remove(panel);
         }
     }
 
     public void saveFile(String fileName) throws IOException {
-        //TODO sort list before save to file
-        //Collections.sort(pokemonSpeciesDataList);
         //Create JsonWriter with fileName
         JsonWriter writer = new JsonWriter(new FileWriter(fileName));
         //create a gson object
@@ -213,7 +238,6 @@ public class PokeGen {
 
     }
 
-
     public static void main(String[] args) {
         JFrame frame = new JFrame("PokeGen");
         frame.setContentPane(new PokeGen().root);
@@ -221,6 +245,5 @@ public class PokeGen {
         frame.pack();
         frame.setVisible(true);
     }
-
 
 }
