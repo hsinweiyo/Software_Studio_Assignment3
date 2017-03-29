@@ -37,6 +37,10 @@ public class PokeGen {
     private JTextField spAtkField;
     private JTextField spDefField;
     private JTextField speedField;
+    private JPanel slot6;
+    private JPanel slot7;
+    private JPanel slot8;
+    private JButton editButton;
     private JPanel currentSelectedPanel;
     private ArrayList<JTextField> statFields;
 
@@ -78,13 +82,11 @@ public class PokeGen {
                 currentSelectedPanel.setBorder(BorderFactory.createLoweredBevelBorder());
                 loadPokemon(currentSelectedPanel);
             }
-
             @Override
             public void mousePressed(MouseEvent e) { }
             @Override
             public void mouseReleased(MouseEvent e) {
                 currentSelectedPanel.setBorder(BorderFactory.createEtchedBorder());
-
             }
             @Override
             public void mouseEntered(MouseEvent e) { }
@@ -99,6 +101,9 @@ public class PokeGen {
         slot3.addMouseListener(handler);
         slot4.addMouseListener(handler);
         slot5.addMouseListener(handler);
+        slot6.addMouseListener(handler);
+        slot7.addMouseListener(handler);
+        slot8.addMouseListener(handler);
 
         saveButton.addActionListener(new ActionListener() {
             @Override
@@ -125,19 +130,37 @@ public class PokeGen {
             }
         });
 
+        editButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+               for(int i = 0; i < statFields.size(); i++) {
+                   statFields.get(i).setEditable(true);
+               }
+               speciesComboBox.setEnabled(true);
+            }
+        });
     }
 
     public void setPokemon(JPanel panel) {
         int[] value = new int[6];
         for(int i = 0; i < 6; i++) {
             value[i] = Integer.parseInt(statFields.get(i+1).getText());
+            statFields.get(i+1).setEditable(false);
         }
-        String nickName = nickNameField.getText();
+
         int comboIndex   = speciesComboBox.getSelectedIndex();
+        String nickName  = nickNameField.getText();
+
         PokemonSpeciesData speciesData = pokedex.getPokemonData(comboIndex-1);
+
         PokemonIndividualData individualData = new PokemonIndividualData (speciesData, nickName, value, comboIndex);
         pokemonMap.put(panel, individualData);
+
+        nickNameField.setEditable(false);
+        speciesComboBox.setEnabled(false);
+
         ImageIcon icon = new ImageIcon(PokemonSprite.getSprite(comboIndex));
+
         JLabel label = (JLabel) panel.getComponent(0);
         label.setIcon(icon);
         newpokedex.addNewPokemon(individualData.getId(), individualData.getSpeciesName(), value, individualData.getType());
@@ -147,16 +170,24 @@ public class PokeGen {
         if(pokemonMap.containsKey(panel)) {
             PokemonIndividualData individualData = pokemonMap.get(panel);
             int[] value = individualData.getSpeciesValue().getValArray();
-            speciesComboBox.setSelectedIndex(individualData.getId());
+
+            speciesComboBox.setSelectedIndex(individualData.getComboIndex());
             nickNameField.setText(individualData.getNickName());
-            for(int i = 0; i < 6; i++) {
-                Integer valstr = value[i];
-                statFields.get(i+1).setText(valstr.toString());
+
+
+            for(int i = 1; i < statFields.size(); i++) {
+                Integer valstr = value[i-1];
+                statFields.get(i).setText(valstr.toString());
             }
+
         } else {
-            for(int i = 0; i < statFields.size(); i++) {
-                statFields.get(i).setText(null);
-                speciesComboBox.setSelectedIndex(0);
+            speciesComboBox.setEnabled(true);
+            speciesComboBox.setSelectedIndex(0);
+            nickNameField.setEditable(true);
+            nickNameField.setText(null);
+            for(int i = 1; i < statFields.size(); i++) {
+                statFields.get(i).setText("0");
+                statFields.get(i).setEditable(true);
             }
         }
     }

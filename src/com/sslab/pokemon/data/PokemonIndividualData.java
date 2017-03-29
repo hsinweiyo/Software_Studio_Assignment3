@@ -19,4 +19,8 @@ public class PokemonIndividualData extends PokemonSpeciesData
     public String getNickName() {
         return nickName;
     }
+
+    public int getComboIndex() {
+        return  comboIndex;
+    }
 }
